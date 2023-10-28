@@ -59,11 +59,13 @@ jobs:
               repo: context.repo.repo,
               ref: "heads/${{ github.event.pull_request.head.ref }}"
             });
-
       - uses: hmarr/auto-approve-action@v3
         with:
           permissions: write-all
           review-message: "Auto approved automated PR"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            ref: feature/${{github.head_ref}}
+          route: GET /repos/:repository/compare/:base...:head
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          INPUT_REPOSITORY: ${{ github.repository }}
+          INPUT_BASE: ${{ github.base_ref }}
+          INPUT_HEAD: ${{ github.ref }}
