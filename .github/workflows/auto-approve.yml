@@ -15,6 +15,7 @@ jobs:
         run: |
           echo "::set-output name=branch::feature/${{github.head_ref}}"
       - name: Create new PR
+        id: pull-request
         uses: actions/github-script@v6
         with:
           script: |
@@ -59,11 +60,24 @@ jobs:
               repo: context.repo.repo,
               ref: "heads/${{ github.event.pull_request.head.ref }}"
             });
-
-      - uses: hmarr/auto-approve-action@v3
+            console.log(`::set-output name=resultPr::${JSON.stringify(result.data.number)}`);
+      - name: approve pull request
+        uses: actions/github-script@v6
         with:
-          permissions: write-all
-          review-message: "Auto approved automated PR"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            ref: feature/${{github.head_ref}}
+          github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
+          script: |
+            //Auto close if the pr its for a patch version.
+            if("${{ steps.metadata.outputs.update-type }}" == 'version-update:semver-patch') {
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ steps.pull-request.outputs.resultPr }},
+              event: 'APPROVE'
+            });
+             await github.rest.pulls.merge({
+                merge_method: "merge",
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: ${{ steps.pull-request.outputs.resultPr }},
+              })
+         }
