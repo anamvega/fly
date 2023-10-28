@@ -66,7 +66,7 @@ jobs:
             });
             
             //Auto close if the pr its for a patch version.
-            if("${{ steps.metadata.outputs.update-type }}" == 'version-update:semver-patch') {
+            if("${{ github.event.pull_request.title }}" == "[Dependabot] ${{ github.event.pull_request.title }}") {
             
               await github.rest.pulls.merge({
                 merge_method: "merge",
