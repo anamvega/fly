@@ -59,11 +59,14 @@ jobs:
               repo: context.repo.repo,
               ref: "heads/${{ github.event.pull_request.head.ref }}"
             });
-
-      - uses: hmarr/auto-approve-action@v3
-        with:
-          permissions: write-all
-          review-message: "Auto approved automated PR"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            ref: feature/${{github.head_ref}}
+             await github.rest.pulls.merge({
+                merge_method: "merge",
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: result.data.number,
+              })
+      - name: Enable auto-merge for Dependabot PRs
+        run: gh pr merge --auto --merge "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

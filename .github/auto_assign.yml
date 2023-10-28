@@ -1,0 +1,34 @@
+# Set to true to add reviewers to pull requests
+addReviewers: true
+
+# Set to true to add assignees to pull requests
+addAssignees: author
+
+# A list of reviewers to be added to pull requests (GitHub user name)
+reviewers:
+  - maquintero_meli
+  - dabarrios_meli
+  - niperalta_meli
+  - rorellana_meli
+  - malay_meli
+  - corostegui_meli
+  - scalderondia_meli
+  - crrojas_meli
+  - geobando_meli
+  - jdmorales_meli
+  - angedgarcia_meli
+  - fedbarros_meli
+  - rjara_meli
+  - joserios_meli
+  - ext-veana_meli
+  - ext-yeigomez_meli
+  - ext-casantac_meli
+  - ext-dicuervo_meli
+
+# A number of reviewers added to the pull request
+# Set 0 to add all the reviewers (default: 0)
+numberOfReviewers: 2
+
+# A list of keywords to be skipped the process that add reviewers if pull requests include it
+skipKeywords:
+  - wip
