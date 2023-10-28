@@ -15,8 +15,10 @@ jobs:
         run: |
           echo "::set-output name=branch::feature/${{github.head_ref}}"
       - name: Create new PR
+        id: pull-request
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const branch = "${{ steps.branch-name.outputs.branch }}";
             //Create the new branch
@@ -58,12 +60,22 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: "heads/${{ github.event.pull_request.head.ref }}"
-            });
-
-      - uses: hmarr/auto-approve-action@v3
+            }); 
+            console.log(`echo "::set-output name=resultPr::${JSON.stringify(result.data.number)}"`);
+      - name: approve pull request
+        uses: hmarr/auto-approve-action@v3
         with:
-          permissions: write-all
+          github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
           review-message: "Auto approved automated PR"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            ref: feature/${{github.head_ref}}
+          script: |
+            console.log(`echo ${{ steps.pull-request.outputs.resultPr }}`);
+            await github.rest.pulls.createReview({
+              repo: context.repo.repo,
+              pull_number: ${{ steps.pull-request.outputs.resultPr }},
+              event: 'APPROVE'
+            });
+             await github.rest.pulls.merge({
+                merge_method: "merge",
+                repo: context.repo.repo,
+                pull_number: ${{ steps.pull-request.outputs.resultPr }},
+              })
