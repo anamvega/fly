@@ -66,12 +66,9 @@ jobs:
             });
             
             //Auto close if the pr its for a patch version.
-            if("${{ steps.metadata.outputs.update-type }}" == 'version-update:semver-patch') {
-            
               await github.rest.pulls.merge({
                 merge_method: "merge",
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 pull_number: result.data.number,
               })
-            }
