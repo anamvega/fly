@@ -59,11 +59,12 @@ jobs:
               repo: context.repo.repo,
               ref: "heads/${{ github.event.pull_request.head.ref }}"
             });
-
-      - uses: hmarr/auto-approve-action@v3
+      - name: Auto-approve PR
+        uses: octokit/request-action@v2.x
         with:
-          permissions: write-all
-          review-message: "Auto approved automated PR"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            ref: feature/${{github.head_ref}}
+          route: PUT /repos/:repository/pulls/result.data.number/reviews
+          repository: ${{ github.repository }}
+          pull_number: ${{ github.result.data.number }}
+          event_type: APPROVE
+        env:
+          GITHUB_TOKEN: ${{ secrets.BOT_GITHUB_TOKEN }}
