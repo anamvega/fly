@@ -65,3 +65,5 @@ jobs:
           permissions: write-all
           review-message: "Auto approved automated PR"
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            ref: feature/${{github.head_ref}}
