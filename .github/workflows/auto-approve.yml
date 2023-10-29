@@ -3,7 +3,7 @@ on: [ pull_request ]
 jobs:
   new-dependabot-pr:
     runs-on: ubuntu-latest
-    if: startsWith(github.head_ref, 'feature/VISMB2C-3139')
+    if: startsWith(github.head_ref, 'feature/cambios-actions')
     permissions: write-all
     steps:
       - name: Checkout
@@ -66,6 +66,8 @@ jobs:
         with:
           github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
           script: |
+            //Auto close if the pr its for a patch version.
+            if("${{ steps.metadata.outputs.update-type }}" == 'version-update:semver-patch') {
             await github.rest.pulls.createReview({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -78,3 +80,4 @@ jobs:
                 repo: context.repo.repo,
                 pull_number: ${{ steps.pull-request.outputs.resultPr }},
               })
+            }
