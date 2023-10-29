@@ -1,0 +1,41 @@
+name: Swagger release check
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  validate_swagger:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      
+    - name: Get changed files
+      uses: actions/github-script@v5
+      with:
+        debug: true
+        script: |
+          const files = await github.rest.pulls.listFiles({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: ${{ github.event.number }},
+          });
+
+          const swaggerFound = files.data.filter((f) => "docs/specs/swagger.yml" === f.filename || "docs/specs/swagger.yaml" === f.filename);
+          if (typeof swaggerFound !== 'undefined' && swaggerFound.length === 0) {
+            core.setFailed(`ERROR: No changes detected in swagger.yml file`);
+          }
+        
+    - name: Create comment
+      if: failure()
+      uses: actions/github-script@v5
+      with:
+        script: |
+          const result = await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+            body: '## WARNING!🚨 \n ChatGPT detected that your changes are not fully documented in swagger spec.\n\n If you think this is a mistake, react to this comment with a 👎'
+          });
