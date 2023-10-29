@@ -1,0 +1,30 @@
+name: Empty backport self-closing
+on: [ pull_request ]
+jobs:
+  new-dependabot-pr:
+    runs-on: ubuntu-latest
+    if: startsWith(github.head_ref, 'backport/')
+    permissions: write-all
+    steps:
+      - name: Self-closing
+        uses: actions/github-script@v6
+        with:
+          script: |
+            if(context.payload.pull_request.changed_files == 0) {
+            
+              //Close backport unchanged
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: ${{ github.event.number }},
+                state: 'closed'
+              })
+            
+              //Delete backport branch 
+              await github.rest.git.deleteRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: "heads/${{ github.event.pull_request.head.ref }}"
+              });
+            
+            }
