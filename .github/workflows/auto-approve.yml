@@ -1,0 +1,79 @@
+name: Auto approve Dependabot
+on: [ pull_request ]
+jobs:
+  new-dependabot-pr:
+    runs-on: ubuntu-latest
+    if: startsWith(github.head_ref, 'feature/VISMB2C-3139')
+    permissions: write-all
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+      - name: Rename branch
+        id: branch-name
+        run: |
+          echo "::set-output name=branch::feature/${{github.head_ref}}"
+      - name: Create new PR
+        id: pull-request
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const branch = "${{ steps.branch-name.outputs.branch }}";
+            //Create the new branch
+            await github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: context.sha,
+              ref: `refs/heads/${branch}`,
+            });
+            
+            //Create the new PR with fixed branch name
+            const result = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: "${{ steps.branch-name.outputs.branch }}",
+              base: "${{ github.event.repository.default_branch }}",
+              title: "[Dependabot] ${{ github.event.pull_request.title }}",
+              body: ${{ toJSON(github.event.pull_request.body) }},
+            });
+            
+            //Add dependencies label
+            await github.rest.issues.addLabels({
+              issue_number: result.data.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['dependencies']
+            });
+            
+            //Close dependabot pull request
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ github.event.number }},
+              state: 'closed'
+            })
+            
+            //Delete dependabot branch 
+            await github.rest.git.deleteRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: "heads/${{ github.event.pull_request.head.ref }}"
+            }); 
+            console.log(`echo "::set-output name=resultPr::${JSON.stringify(result.data.number)}"`);
+      - name: approve pull request
+        uses: hmarr/auto-approve-action@v3
+        with:
+          review-message: "Auto approved automated PR"
+          github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
+          script: |
+            await github.rest.pulls.createReview({
+              repo: context.repo.repo,
+              pull_number: ${{ steps.pull-request.outputs.resultPr }},
+              event: 'APPROVE'
+            });
+             await github.rest.pulls.merge({
+                merge_method: "merge",
+                repo: context.repo.repo,
+                pull_number: ${{ steps.pull-request.outputs.resultPr }},
+              })
