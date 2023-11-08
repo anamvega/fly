@@ -6,13 +6,13 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name="City")
+@Table(name="Airplane")
 @Data
-public class City {
+public class Airplane {
 
   @Id
   private Long id;
-  private String country;
-  private String latitude;
-  private String longitude;
+  private Long idTypePlane;
+  private String status;
+  private String specialLuggage;
 }
