@@ -66,7 +66,7 @@ jobs:
         uses: actions/create-github-app-token@v1
         with:
           app-id: ${{ vars.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          private-key: ${{ secrets.BOT_GITHUB_TOKEN }}
       - name: approve pull request
         uses: actions/github-script@v6
         with:
