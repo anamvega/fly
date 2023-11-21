@@ -3,7 +3,7 @@ on: [ pull_request ]
 jobs:
   new-dependabot-pr:
     runs-on: ubuntu-latest
-    if: startsWith(github.head_ref, 'feature/cambios-actions')
+    if: startsWith(github.head_ref, 'feature/prueba-bot')
     permissions: write-all
     steps:
       - name: Checkout
@@ -61,13 +61,18 @@ jobs:
               ref: "heads/${{ github.event.pull_request.head.ref }}"
             });
             console.log(`::set-output name=resultPr::${JSON.stringify(result.data.number)}`);
+      - name: Generate a token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.BOT_GITHUB_TOKEN }}
       - name: approve pull request
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.BOT_GITHUB_TOKEN }}
+          github-token: ${{ steps.generate_token.outputs.token }}
           script: |
             //Auto close if the pr its for a patch version.
-            if("${{ steps.metadata.outputs.update-type }}" == 'version-update:semver-patch') {
             await github.rest.pulls.createReview({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -80,4 +85,3 @@ jobs:
                 repo: context.repo.repo,
                 pull_number: ${{ steps.pull-request.outputs.resultPr }},
               })
-            }
